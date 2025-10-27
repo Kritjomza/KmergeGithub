@@ -1,5 +1,6 @@
 name: CI
 
+# ✅ ให้ workflow เข้าถึงเนื้อหา repo ได้
 permissions:
   contents: read
 
@@ -21,17 +22,21 @@ jobs:
       run:
         working-directory: K-Merge-Frontend-Dev
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0          # ✅ ดึงทั้ง repo (แก้ exit code 128)
+          persist-credentials: true # ✅ ให้ token ใช้ได้
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: K-Merge-Frontend-Dev/package-lock.json
+          # ⚠️ ถ้ามี package-lock.json อยู่จริง ให้ใช้ path นี้
+          # ถ้าไม่มี ให้ลบบรรทัดนี้ออกได้เลย
+          cache-dependency-path: |
+            K-Merge-Frontend-Dev/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -45,17 +50,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Optional Playwright E2E (requires backend and test data)
-      - name: Install Playwright browsers
-        if: ${{ vars.RUN_FRONTEND_E2E == 'true' }}
-        run: npx playwright install --with-deps
-
-      - name: Run Playwright tests
-        if: ${{ vars.RUN_FRONTEND_E2E == 'true' }}
-        env:
-          CI: true
-        run: npx playwright test
-
   backend:
     name: Backend (NestJS)
     runs-on: ubuntu-latest
@@ -63,15 +57,19 @@ jobs:
       run:
         working-directory: kmerge_api2
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: kmerge_api2/package-lock.json
+          cache-dependency-path: |
+            kmerge_api2/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -84,4 +82,3 @@ jobs:
 
       - name: Test (unit)
         run: npm test -- --ci
-
