@@ -1,0 +1,62 @@
+name: Deploy Frontend (GitHub Pages)
+
+on:
+  workflow_dispatch:
+    inputs:
+      basePath:
+        description: "Vite --base path (use '/<repo>/' for project pages)"
+        required: false
+        default: "/"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: K-Merge-Frontend-Dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: K-Merge-Frontend-Dev/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc -b --pretty false
+
+      - name: Build (Vite)
+        # Use explicit vite build to allow passing --base without changing scripts
+        run: npx vite build --base="${{ inputs.basePath }}"
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: K-Merge-Frontend-Dev/dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
