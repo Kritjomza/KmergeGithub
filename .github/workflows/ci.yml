@@ -33,10 +33,6 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          # ⚠️ ถ้ามี package-lock.json อยู่จริง ให้ใช้ path นี้
-          # ถ้าไม่มี ให้ลบบรรทัดนี้ออกได้เลย
-          cache-dependency-path: |
-            K-Merge-Frontend-Dev/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -68,8 +64,6 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: |
-            kmerge_api2/package-lock.json
 
       - name: Install dependencies
         run: npm ci
